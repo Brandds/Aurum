@@ -1,19 +1,37 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button, Image, StyleSheet, View } from "react-native";
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import { Colors } from "../../styles/constants"; // Certifique-se de ter esse arquivo
-
+import * as ImagePicker from 'expo-image-picker'; // Para galeria
+import * as Permissions from 'expo-permissions'; // Para permissões
 
 export const UserView = () => {
-  const [photoUri, setPhotoUri] = React.useState<string | null>(null);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+
+  const requestCameraPermission = async () => {
+    const { status } = await Permissions.askAsync(Permissions.CAMERA);
+    if (status === 'granted') {
+      openCamera();
+    } else {
+      console.log('Permissão de câmera negada');
+    }
+  };
+
+  const requestGalleryPermission = async () => {
+    const { status } = await Permissions.askAsync(Permissions.MEDIA_LIBRARY);
+    if (status === 'granted') {
+      openGallery();
+    } else {
+      console.log('Permissão de galeria negada');
+    }
+  };
 
   const openCamera = () => {
     launchCamera(
       {
-        mediaType: 'photo', // Defina o tipo de mídia como foto
-        cameraType: 'back', // Tipo de câmera (traseira ou frontal)
-        saveToPhotos: true, // Salvar a foto na galeria
-        quality: 1, // Qualidade da imagem
+        mediaType: 'photo',
+        cameraType: 'back',
+        saveToPhotos: true,
+        quality: 1,
       },
       (response) => {
         if (response.didCancel) {
@@ -22,34 +40,30 @@ export const UserView = () => {
           console.log('Erro ao tirar foto: ', response.errorMessage);
         } else if (response.assets && response.assets[0]) {
           const source = response.assets[0].uri;
-          setPhotoUri(source ?? null); // Defina o URI da foto capturada
+          setPhotoUri(source ?? null);
         }
       }
     );
   };
 
-  const openGallery = () => {
-    launchImageLibrary(
-      {
-        mediaType: 'photo', // Defina o tipo de mídia como foto
-      },
-      (response) => {
-        if (response.didCancel) {
-          console.log('Usuário cancelou a seleção da imagem');
-        } else if (response.errorCode) {
-          console.log('Erro ao selecionar imagem: ', response.errorMessage);
-        } else if (response.assets && response.assets[0]) {
-          const source = response.assets[0].uri;
-          setPhotoUri(source ?? null); // Defina o URI da imagem selecionada
-        }
-      }
-    );
+  const openGallery = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.cancelled) {
+      setPhotoUri(result.uri);
+    } else {
+      console.log('Usuário cancelou a seleção da imagem');
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Button title="Abrir Câmera" onPress={openCamera} />
-      <Button title="Selecionar da Galeria" onPress={openGallery} />
+      <Button title="Abrir Câmera" onPress={requestCameraPermission} />
+      <Button title="Selecionar da Galeria" onPress={requestGalleryPermission} />
       {photoUri && <Image source={{ uri: photoUri }} style={styles.image} />}
     </View>
   );
@@ -57,10 +71,9 @@ export const UserView = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // Garante que o container ocupe toda a tela
-    justifyContent: 'center', // Centraliza o conteúdo na tela
-    alignItems: 'center', // Alinha os itens ao centro
-    backgroundColor: Colors.fundo, // Cor de fundo (ajustar de acordo com a sua variável)
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   image: {
     width: 200,
