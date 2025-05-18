@@ -2,6 +2,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Colors } from "../styles/constants";
 import { DashboardStyle, UserViewStyle } from "../styles/pages";
 import Dashboard from "../views/Dashboard/Dashboard";
+import Cadastro from "../views/User/Cadastro";
 import { UserView } from "../views/User/UserView";
 
 const Tab = createBottomTabNavigator();
@@ -37,6 +38,10 @@ export default function Tabs() {
         name="UserView"
         component={UserView}
         options={UserViewStyle}
+      />
+      <Tab.Screen
+        name="CadastroUsuario"
+        component={Cadastro}
       />
     </Tab.Navigator>
   )

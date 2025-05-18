@@ -1,3 +1,4 @@
+import axios, { AxiosResponse } from "axios";
 import { Formik } from "formik";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
@@ -8,9 +9,10 @@ import { Colors } from "../../styles/constants";
 
 
 
+
 const initialValues = {
   nome: "",
-  cpf: "",
+  documento: "",
   senha: "",
   confirmarSenha: "",
   email: "",
@@ -34,19 +36,75 @@ const validationSchema = Yup.object().shape({
   confirmarSenha: Yup.string()
     .oneOf([Yup.ref("senha"), null], "As senhas não coincidem")
     .required("Confirmação de senha é obrigatória"),
-  cpf: Yup.string()
+  documento: Yup.string()
     .required("CPF é obrigatório"),
 })
 
 interface UsuarioProps {
   nome: string;
-  cpf: string;
+  documento: string;
   senha: string;
   confirmarSenha: string;
   email: string;
   confirmaEmail: string;
 }
+
+interface UsuarioCadastro {
+  nome: string;
+  documento: string;
+  senha: string;
+  email: string;
+
+}
+
 const Cadastro = () => {
+
+  const cadastrarUsuario = async (values: UsuarioProps) => {
+    const url = "https://localhost:7202/api/Usuario/cadastrar"; // Para emulador Android
+    const newUsuario: UsuarioCadastro = {
+      nome: values.nome,
+      documento: values.documento,
+      senha: values.senha,
+      email: values.email
+    }
+
+    console.log(newUsuario);
+
+
+    try {
+      const response: AxiosResponse = await axios.post(url, newUsuario, { timeout: 5000 }); // Timeout de 5 segundos
+      console.log('Cadastro bem-sucedido:', response.data);
+      return true;
+    } catch (error) {
+      // Verificando se o erro é do tipo Axios
+      if (axios.isAxiosError(error)) {
+        console.error('Erro de Axios:', error.message);
+
+        // Se a resposta foi recebida, mas há um erro
+        if (error.response) {
+          console.error('Status:', error.response.status);
+          console.error('Dados da resposta:', error.response.data);
+
+          // Diagnóstico específico para códigos de status HTTP
+          if (error.response.status === 404) {
+            console.error('Erro: Recurso não encontrado.');
+          } else if (error.response.status === 500) {
+            console.error('Erro no servidor.');
+          }
+        }
+        // Se não há resposta (por exemplo, a requisição não foi feita)
+        else if (error.request) {
+          console.error('Erro na requisição:', error.request);
+        }
+      }
+      // Se o erro não for relacionado ao Axios
+      else {
+        console.error('Erro não relacionado ao Axios:', error);
+      }
+    }
+  };
+
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -57,7 +115,7 @@ const Cadastro = () => {
           validationSchema={validationSchema}
           initialValues={initialValues}
           onSubmit={(values) => {
-            console.log(values);
+            cadastrarUsuario(values);
           }}
         >
           {({
@@ -88,11 +146,11 @@ const Cadastro = () => {
                   placeholder="CPF"
                   keyboardType="numeric"
                   onChangeText={(text, rawText) => {
-                    handleChange("cpf")(rawText); // Use o valor sem máscara no Formik
+                    handleChange("documento")(rawText); // Use o valor sem máscara no Formik
                   }}
-                  value={values.cpf}
+                  value={values.documento}
                 />
-                {touched.cpf && errors.cpf && <Text style={styles.error}>{errors.cpf}</Text>}
+                {touched.documento && errors.documento && <Text style={styles.error}>{errors.documento}</Text>}
                 <Text style={styles.labelContainer}>E-mail</Text>
                 <TextInput
                   style={styles.textInput}

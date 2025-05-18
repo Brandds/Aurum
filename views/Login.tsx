@@ -20,7 +20,7 @@ interface LoginProps {
 const Login = ({ navigation }: any) => {
   const [viewNotication, setViewNotification] = useState<boolean>(false);
   const handleCadastro = () => {
-    navigation.navigate('Tabs');
+    navigation.navigate('Cadastro');
   }
   const handleLogin = (values: LoginProps) => {
     console.log(values);
