@@ -36,7 +36,7 @@ const Login = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <Alert viewMode={viewNotication} />
+      <Alert text1='Notificação de Sucesso!' type={"success"} text2='Login feito com sucesso' viewMode={viewNotication} />
       <Formik
         validationSchema={validationSchema}
         initialValues={{ cpf: '', senha: '' }}

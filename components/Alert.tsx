@@ -4,22 +4,25 @@ import Toast from 'react-native-toast-message';
 
 interface AlertProps {
   viewMode: boolean;
+  type: string;
+  text1: string;
+  text2: string;
 }
 
-const Alert = ({ viewMode }: AlertProps) => {
+const Alert = (values: AlertProps) => {
   const showToast = () => {
     Toast.show({
-      type: 'success',
-      text1: 'Notificação de Sucesso!',
-      text2: 'A operação foi concluída com sucesso.',
+      type: values.type,
+      text1: values.text1,
+      text2: values.text2,
       position: 'top',
     });
   };
   useEffect(() => {
-    if (viewMode) {
+    if (values.viewMode) {
       showToast();
     }
-  }, [viewMode]);
+  }, [values.viewMode]);
 
   return (
     <View style={styles.container}>

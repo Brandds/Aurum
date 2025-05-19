@@ -1,10 +1,13 @@
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
 import { Formik } from "formik";
+import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
 import { MaskedTextInput } from "react-native-mask-text";
 import * as Yup from "yup";
+import Alert from "../../components/Alert";
 import { DefaultButton } from "../../components/DefautlBotton";
+import axiosInstance from "../../Services/axiosInstance";
 import { Colors } from "../../styles/constants";
 
 
@@ -58,51 +61,64 @@ interface UsuarioCadastro {
 }
 
 const Cadastro = () => {
+  const [viewNotication, setViewNotification] = useState<boolean>(false);
+  const [mensagem, setMensagem] = useState<string>("");
+  const [colorAlert, setColorAlert] = useState<string>(Colors.textInfo);
 
   const cadastrarUsuario = async (values: UsuarioProps) => {
-    const url = "https://localhost:7202/api/Usuario/cadastrar"; // Para emulador Android
+    const url = "Usuario/cadastrar";
+
     const newUsuario: UsuarioCadastro = {
       nome: values.nome,
       documento: values.documento,
       senha: values.senha,
       email: values.email
     }
-
-    console.log(newUsuario);
-
-
     try {
-      const response: AxiosResponse = await axios.post(url, newUsuario, { timeout: 5000 }); // Timeout de 5 segundos
-      console.log('Cadastro bem-sucedido:', response.data);
+      const response: any = await axiosInstance.post(url, newUsuario)
+      verificarStatusCadastro(response.status, "");
       return true;
     } catch (error) {
-      // Verificando se o erro é do tipo Axios
+
       if (axios.isAxiosError(error)) {
         console.error('Erro de Axios:', error.message);
 
-        // Se a resposta foi recebida, mas há um erro
         if (error.response) {
           console.error('Status:', error.response.status);
-          console.error('Dados da resposta:', error.response.data);
-
-          // Diagnóstico específico para códigos de status HTTP
-          if (error.response.status === 404) {
-            console.error('Erro: Recurso não encontrado.');
+          if (error.response.status === 400) {
+            verificarStatusCadastro(error.response.status, error.response.data);
           } else if (error.response.status === 500) {
             console.error('Erro no servidor.');
           }
-        }
-        // Se não há resposta (por exemplo, a requisição não foi feita)
-        else if (error.request) {
+        } else if (error.request) {
           console.error('Erro na requisição:', error.request);
         }
       }
-      // Se o erro não for relacionado ao Axios
       else {
         console.error('Erro não relacionado ao Axios:', error);
       }
     }
   };
+
+  const verificarStatusCadastro = (status: number, mensagem: string) => {
+    console.log(status);
+    if (status === 201) {
+      setMensagem("Cadastro realizado com sucesso");
+      setColorAlert("success");
+      setViewNotification(true);
+      setTimeout(() => {
+        setViewNotification(false);
+      }, 4000);
+    }
+    if (status === 400) {
+      setMensagem(mensagem);
+      setColorAlert("error");
+      setViewNotification(true);
+      setTimeout(() => {
+        setViewNotification(false);
+      }, 4000);
+    }
+  }
 
 
   return (
@@ -110,7 +126,8 @@ const Cadastro = () => {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <Alert type={colorAlert} text1="Informação" text2={mensagem} viewMode={viewNotication} />
+      < ScrollView contentContainerStyle={styles.scrollContainer}>
         <Formik
           validationSchema={validationSchema}
           initialValues={initialValues}
